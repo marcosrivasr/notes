@@ -1,9 +1,27 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  ChangeEventHandler,
+  EventHandler,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { observer } from "mobx-react";
 import getStore from "./store/store";
-import { addNote, selectNode } from "./actions/notes";
+import {
+  addNote,
+  selectNode,
+  updateContent,
+  updateTitle,
+} from "./actions/notes";
 
-import { ContentState, Editor, EditorState, RichUtils } from "draft-js";
+import {
+  ContentState,
+  Editor,
+  EditorState,
+  RichUtils,
+  convertToRaw,
+  convertFromRaw,
+} from "draft-js";
 import "draft-js/dist/Draft.css";
 
 import styles from "./App.module.css";
@@ -11,7 +29,7 @@ import ListItem from "./components/listItem";
 
 export default observer(function App() {
   const contentDiv = useRef(null);
-  const noteSelected = getStore().selected;
+  let noteSelected = getStore().selected;
 
   const [editorState, setEditorState] = React.useState(() =>
     EditorState.createEmpty()
@@ -23,17 +41,40 @@ export default observer(function App() {
     }
   }, []);
 
+  /*  useEffect(() => {
+    if (noteSelected && noteSelected.content) {
+      console.log("as");
+      const contentState = convertFromRaw(noteSelected!.content);
+      const editorState = EditorState.createWithContent(contentState);
+      setEditorState(editorState);
+    }
+  }, [noteSelected]); */
+
   function createNote() {
     addNote("", "");
-    selectNode(0);
-    const contentState = ContentState.createFromText("Hola a todos");
-    setEditorState(EditorState.createWithContent(contentState));
-    (contentDiv.current! as HTMLDivElement).focus();
+    selectNewNote(0);
   }
 
-  function handleNoteClick(index: number) {
-    console.log(index);
-    selectNode(index);
+  function selectNewNote(id: string | number) {
+    selectNode(id);
+    setEditorState(EditorState.createEmpty());
+
+    noteSelected = getStore().selected;
+
+    if (noteSelected && noteSelected.content) {
+      if (!noteSelected.content) {
+        setEditorState(EditorState.createEmpty());
+      } else {
+        setEditorState(EditorState.createEmpty());
+        const contentState = convertFromRaw(noteSelected!.content);
+        const editorState = EditorState.createWithContent(contentState);
+        setEditorState(editorState);
+      }
+    }
+  }
+
+  function handleNoteClick(id: string) {
+    selectNewNote(id);
   }
 
   function _onBoldClick() {
@@ -41,6 +82,15 @@ export default observer(function App() {
   }
   function _onBulletClick() {
     setEditorState(RichUtils.toggleInlineStyle(editorState, "UL"));
+  }
+
+  function onChangeEditor(e: EditorState) {
+    updateContent(convertToRaw(e.getCurrentContent()));
+    setEditorState(e);
+  }
+
+  function onChangeTitle(e: React.ChangeEvent<HTMLInputElement>) {
+    updateTitle(e.target.value);
   }
 
   return (
@@ -53,18 +103,35 @@ export default observer(function App() {
             note={note}
             selected={note.id === noteSelected?.id}
             onClickItem={() => {
-              handleNoteClick(index);
+              handleNoteClick(note.id);
             }}
           />
         ))}
       </div>
 
       <div className={styles.main}>
-        <button onClick={_onBoldClick}>Bold</button>
-        <button onClick={_onBulletClick}>Bullet</button>
+        <input
+          onChange={onChangeTitle}
+          value={noteSelected?.title}
+          className={styles.title}
+          tabIndex={0}
+          placeholder="Nota sin título"
+        />
+
+        <div>
+          <button onClick={_onBoldClick} tabIndex={2}>
+            Bold
+          </button>
+          <button onClick={_onBulletClick} tabIndex={3}>
+            Bullet
+          </button>
+        </div>
         <div ref={contentDiv} className={styles.editor}>
-          {noteSelected ? noteSelected.content : null}
-          <Editor editorState={editorState} onChange={setEditorState} />
+          <Editor
+            editorState={editorState}
+            onChange={onChangeEditor}
+            tabIndex={0}
+          />
         </div>
       </div>
     </div>
