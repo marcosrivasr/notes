@@ -1,0 +1,15 @@
+.listItem {
+  padding: 10px;
+  line-clamp: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 300px;
+  box-sizing: border-box;
+}
+
+.selected {
+  background-color: white;
+  width: 300px;
+  text-overflow: ellipsis;
+}
