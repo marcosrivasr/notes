@@ -1,7 +1,7 @@
 export interface Note {
   id: string;
   title: string;
-  content: string;
+  content: Draft.DraftModel.Encoding.RawDraftContentState | undefined;
   createdAt: number;
 }
 
