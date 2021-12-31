@@ -1,12 +1,18 @@
-import { mutator } from 'satcheljs';
-import {addNote} from '../actions/notes'
-import getStore from '../store/store';
+import { mutator } from "satcheljs";
+import { addNote, selectNode } from "../actions/notes";
+import getStore from "../store/store";
 
 mutator(addNote, (actionMessage) => {
-    getStore().push({
-        id: Math.random().toString(),
-        title: 'asda',
-        content: 'A new note',
-        createdAt: Date.now()
-    });
-};
+  getStore().noteItems.unshift({
+    id: Math.random().toString(),
+    title: actionMessage.title,
+    content: actionMessage.content,
+    createdAt: Date.now(),
+  });
+});
+
+mutator(selectNode, (actionMessage) => {
+  const note = getStore().noteItems[actionMessage.index];
+
+  getStore().selected = { ...note };
+});

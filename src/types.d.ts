@@ -5,4 +5,7 @@ export interface Note {
   createdAt: number;
 }
 
-export type Notes = Note[];
+export interface Notes {
+  noteItems: Note[];
+  selected: Note | null;
+}
