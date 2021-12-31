@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import getStore from "./store/store";
 import { addNote, selectNode } from "./actions/notes";
 
-import { Editor, EditorState } from "draft-js";
+import { ContentState, Editor, EditorState, RichUtils } from "draft-js";
 import "draft-js/dist/Draft.css";
 
 import styles from "./App.module.css";
@@ -26,12 +26,21 @@ export default observer(function App() {
   function createNote() {
     addNote("", "");
     selectNode(0);
+    const contentState = ContentState.createFromText("Hola a todos");
+    setEditorState(EditorState.createWithContent(contentState));
     (contentDiv.current! as HTMLDivElement).focus();
   }
 
   function handleNoteClick(index: number) {
     console.log(index);
     selectNode(index);
+  }
+
+  function _onBoldClick() {
+    setEditorState(RichUtils.toggleInlineStyle(editorState, "BOLD"));
+  }
+  function _onBulletClick() {
+    setEditorState(RichUtils.toggleInlineStyle(editorState, "UL"));
   }
 
   return (
@@ -51,6 +60,8 @@ export default observer(function App() {
       </div>
 
       <div className={styles.main}>
+        <button onClick={_onBoldClick}>Bold</button>
+        <button onClick={_onBulletClick}>Bullet</button>
         <div ref={contentDiv} className={styles.editor}>
           {noteSelected ? noteSelected.content : null}
           <Editor editorState={editorState} onChange={setEditorState} />
