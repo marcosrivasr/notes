@@ -1,5 +1,6 @@
 import { action } from "satcheljs";
-import { Note } from "../types";
+import React from "react";
+import { EditorState } from "draft-js";
 
 export let addNote = action("addNote", (title: string, content: string) => ({
   title,
@@ -16,3 +17,8 @@ export let updateContent = action(
 );
 
 export let updateTitle = action("udpdateTitle", (title: string) => ({ title }));
+
+export let assignEditorStateFn = action(
+  "assignEditorStateFn",
+  (fn: React.Dispatch<React.SetStateAction<EditorState>>) => ({ fn })
+);

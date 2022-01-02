@@ -1,10 +1,4 @@
-import React, {
-  ChangeEventHandler,
-  EventHandler,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useRef } from "react";
 import { observer } from "mobx-react";
 import getStore from "./store/store";
 import {
@@ -14,41 +8,22 @@ import {
   updateTitle,
 } from "./actions/notes";
 
-import {
-  ContentState,
-  Editor,
-  EditorState,
-  RichUtils,
-  convertToRaw,
-  convertFromRaw,
-} from "draft-js";
+import { EditorState, convertToRaw, convertFromRaw } from "draft-js";
 import "draft-js/dist/Draft.css";
 
 import styles from "./App.module.css";
 import ListItem from "./components/listItem";
+import EditorView from "./components/EditorView";
 
 export default observer(function App() {
-  const contentDiv = useRef(null);
   let noteSelected = getStore().selected;
-
-  const [editorState, setEditorState] = React.useState(() =>
-    EditorState.createEmpty()
-  );
+  const editorRef = useRef<any>();
 
   useEffect(() => {
     if (getStore().noteItems.length === 0) {
       createNote();
     }
   }, []);
-
-  /*  useEffect(() => {
-    if (noteSelected && noteSelected.content) {
-      console.log("as");
-      const contentState = convertFromRaw(noteSelected!.content);
-      const editorState = EditorState.createWithContent(contentState);
-      setEditorState(editorState);
-    }
-  }, [noteSelected]); */
 
   function createNote() {
     addNote("", "");
@@ -57,18 +32,18 @@ export default observer(function App() {
 
   function selectNewNote(id: string | number) {
     selectNode(id);
-    setEditorState(EditorState.createEmpty());
 
+    getStore().editorStateFn(EditorState.createEmpty());
     noteSelected = getStore().selected;
 
     if (noteSelected && noteSelected.content) {
       if (!noteSelected.content) {
-        setEditorState(EditorState.createEmpty());
+        getStore().editorStateFn(EditorState.createEmpty());
       } else {
-        setEditorState(EditorState.createEmpty());
         const contentState = convertFromRaw(noteSelected!.content);
         const editorState = EditorState.createWithContent(contentState);
-        setEditorState(editorState);
+
+        getStore().editorStateFn(editorState);
       }
     }
   }
@@ -77,16 +52,12 @@ export default observer(function App() {
     selectNewNote(id);
   }
 
-  function _onBoldClick() {
-    setEditorState(RichUtils.toggleInlineStyle(editorState, "BOLD"));
-  }
-  function _onBulletClick() {
-    setEditorState(RichUtils.toggleInlineStyle(editorState, "UL"));
-  }
-
   function onChangeEditor(e: EditorState) {
+    console.log("a");
     updateContent(convertToRaw(e.getCurrentContent()));
-    setEditorState(e);
+    getStore().editorStateFn(e);
+    //setEditorState(e);
+    //editorRef.current.updateEditorState(e);
   }
 
   function onChangeTitle(e: React.ChangeEvent<HTMLInputElement>) {
@@ -110,29 +81,11 @@ export default observer(function App() {
       </div>
 
       <div className={styles.main}>
-        <input
-          onChange={onChangeTitle}
-          value={noteSelected?.title}
-          className={styles.title}
-          tabIndex={0}
-          placeholder="Nota sin título"
+        <EditorView
+          title={noteSelected ? noteSelected.title : ""}
+          onChangeTitle={onChangeTitle}
+          onChangeEditor={onChangeEditor}
         />
-
-        <div>
-          <button onClick={_onBoldClick} tabIndex={2}>
-            Bold
-          </button>
-          <button onClick={_onBulletClick} tabIndex={3}>
-            Bullet
-          </button>
-        </div>
-        <div ref={contentDiv} className={styles.editor}>
-          <Editor
-            editorState={editorState}
-            onChange={onChangeEditor}
-            tabIndex={0}
-          />
-        </div>
       </div>
     </div>
   );

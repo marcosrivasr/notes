@@ -8,4 +8,5 @@ export interface Note {
 export interface Notes {
   noteItems: Note[];
   selected: Note | null;
+  editorStateFn: any;
 }

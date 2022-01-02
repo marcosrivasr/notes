@@ -1,6 +1,7 @@
 import { mutator } from "satcheljs";
 import {
   addNote,
+  assignEditorStateFn,
   selectNode,
   updateContent,
   updateTitle,
@@ -41,4 +42,8 @@ mutator(updateContent, (actionMessage) => {
 
 mutator(updateTitle, (actionMessage) => {
   getStore().selected!.title = actionMessage.title;
+});
+
+mutator(assignEditorStateFn, (actionMessage) => {
+  getStore().editorStateFn = actionMessage.fn;
 });
